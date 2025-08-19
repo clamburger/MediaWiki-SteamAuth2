@@ -1,24 +1,41 @@
 <?php
+namespace MediaWiki\Extension\SteamAuth2;
+
 // Imports
+use Exception;
+use LightOpenID;
 use MediaWiki\Auth\AuthManager;
-use MediaWiki\Auth\AuthenticationRequest;
+use MediaWiki\Extension\PluggableAuth\PluggableAuth;
+use MediaWiki\Extension\PluggableAuth\PluggableAuthLogin;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Session\SessionManager;
+use MediaWiki\User\UserIdentity;
 
 class SteamAuth extends PluggableAuth {
-	public function authenticate( &$id, &$username, &$realname, &$email, &$errorMessage ) {
+    public function __construct(
+        private readonly AuthManager $authManager
+    )
+    {
+    }
+
+    public function authenticate(
+        ?int &$id,
+        ?string &$username,
+        ?string &$realname,
+        ?string &$email,
+        ?string &$errorMessage
+    ): bool {
         // Get config options
-        $config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'SteamAuth' ); // Get the config
-        $steamapi = $config->get( 'SteamAuth_Key' );
-        $appid = $config->get( 'SteamAuth_AppID' );
+        $config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'SteamAuth2' ); // Get the config
+        $steamapi = $config->get( 'SteamAuth2_Key' );
+        $appid = $config->get( 'SteamAuth2_AppID' );
 
         // AuthManager for managing the session
-        $authManager = AuthManager::singleton();
+        $authManager = $this->authManager;
 
         try {
             // Create LightOpenID that directs back to this session
-            $openid = new LightOpenID($authManager->getAuthenticationSessionData(PluggableAuthLogin::RETURNTOURL_SESSION_KEY));
-            
+            $openid = new LightOpenID($authManager->getRequest()->getSessionData(PluggableAuthLogin::RETURNTOURL_SESSION_KEY));
+
             // If the LightOpenID hasn't started send the user to Steam (eventually display the login page)
             if(!$openid->mode) {
                 // Check if the button was clicked
@@ -74,10 +91,9 @@ class SteamAuth extends PluggableAuth {
                         // Pass or fail login
                         if ($hasgame) {
                             // Log user in if they have the game
-                            $id = $player->steamid;
                             $username = $player->steamid;
                             $realname = $player->personaname;
-                            
+
                             return true;
                         } else {
                             // Don't log the user in if they dont have the game
@@ -86,12 +102,10 @@ class SteamAuth extends PluggableAuth {
                         }
                     } else {
                         // If the appid has not been specified then log the user in
-                        $id = $player->steamid;
                         $username = $player->steamid;
                         $realname = $player->personaname;
-                        
                         return true;
-                    }                    
+                    }
                 } else {
                     // If the login wasn't valid tell the user
                     $errorMessage = 'User is not logged in.';
@@ -105,12 +119,22 @@ class SteamAuth extends PluggableAuth {
             return false;
 		}
     }
-    
-	public function deauthenticate( User &$user ) {
-        return true;
+
+    public static function getExtraLoginFields(): array
+    {
+        return [
+            "steam" => [
+                "type" => "hidden",
+                "value" => true
+            ]
+        ];
     }
-    
-	public function saveExtraAttributes( $id ) {
-        
-	}
+
+    public function deauthenticate(UserIdentity &$user): void
+    {
+    }
+
+    public function saveExtraAttributes(int $id): void
+    {
+    }
 }

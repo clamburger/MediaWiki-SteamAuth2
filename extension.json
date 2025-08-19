@@ -1,51 +1,53 @@
 {
-	"name": "SteamAuth",
-	"version": "1.0",
+	"name": "SteamAuth2",
+	"version": "2.0",
 	"author": [
-		"[https://www.mediawiki.org/wiki/User:Banakin900 Banakin]"
+		"[https://www.mediawiki.org/wiki/User:Banakin900 Banakin]",
+		"[https://github.com/clamburger Clamburger]"
 	],
-	"url": "https://www.mediawiki.org/wiki/Extension:SteamAuth",
-	"descriptionmsg": "steamauth-desc",
+	"license-name": "MIT",
+	"url": "https://github.com/clamburger/MediaWiki-SteamAuth2",
+	"descriptionmsg": "steamauth2-desc",
 	"type": "other",
 	"requires": {
-        "MediaWiki": ">= 1.34.0",
+		"MediaWiki": ">= 1.34.0",
 		"extensions": {
-			"PluggableAuth": ">= 5.1"
+			"PluggableAuth": ">= 6.0"
 		}
 	},
 	"MessagesDirs": {
-		"SteamAuth": [
+		"SteamAuth2": [
 			"i18n"
 		]
 	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\SteamAuth2\\": "src/"
+	},
 	"AutoloadClasses": {
-		"Setup": "src/Setup.php",
-		"SteamAuth": "src/SteamAuth.php",
 		"LightOpenID": "includes/openid.php"
 	},
-	"ExtensionFunctions": [
-		"Setup::init"
-	],
 	"config": {
-		"SteamAuth_Key": {
+		"SteamAuth2_Key": {
 			"value": "key",
-			"description": "steamauth-key-dec"
+			"description": "steamauth2-key-dec"
 		},
-		"SteamAuth_AppID": {
+		"SteamAuth2_AppID": {
 			"value": null,
-			"description": "steamauth-appid-dec"
-		},
-		"PluggableAuth_Class": {
-			"value": "SteamAuth",
-			"description": "steamauth-pluggable-auth-class-desc"
-		},
-		"PluggableAuth_ButtonLabelMessage": {
-			"value": "steamauth-pluggable-auth-button-label-message",
-			"description": "steamauth-pluggable-auth-button-label-message-desc"
+			"description": "steamauth2-appid-dec"
 		}
 	},
 	"ConfigRegistry": {
-		"SteamAuth": "GlobalVarConfig::newInstance"
+		"SteamAuth2": "GlobalVarConfig::newInstance"
+	},
+	"attributes": {
+		"PluggableAuth": {
+			"SteamAuth2": {
+				"class": "MediaWiki\\Extension\\SteamAuth2\\SteamAuth",
+				"services": [
+					"AuthManager"
+				]
+			}
+		}
 	},
 	"load_composer_autoloader": true,
 	"manifest_version": 2
